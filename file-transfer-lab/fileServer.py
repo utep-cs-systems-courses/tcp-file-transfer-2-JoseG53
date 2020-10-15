@@ -34,10 +34,8 @@ while True:
     sock, addr = listenerSocket.accept()
 
     rc = os.fork() #child to handle connections
-    if rc = 0:
+    if rc == 0:
         print("Connection recieved from ", addr)
-
-       
 
         start = framedReceive(sock, debug)
         try:
@@ -45,6 +43,14 @@ while True:
         except AttributeError:
             print("error exiting: ", start)
             sys.exit(0)
+
+        count = 0
+        for char in start:
+            if char.isalpha():
+                break
+            else:
+                count = count + 1
+        start = start[count:]
 
         #where the file name ends
         start = start.split("\'start\'")
@@ -64,6 +70,11 @@ while True:
             if debug: print("received: ", payload)
             if not payload:
                 break
+            if b"\'end\'" in payload:
+                file.close()
+                sys.exit(0)
+            else:
+                file.write(payload[1:])
 
         #ensures child exits loop        
         break

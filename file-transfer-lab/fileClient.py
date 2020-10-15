@@ -56,7 +56,7 @@ for res in socket.getaddrinfo(serverHost, serverPort, socket.AF_UNSPEC, socket.S
         continue
     break
 
-if s = None:
+if s is None:
     print("Could not open socket")
     sys.exit(1)
 
@@ -87,10 +87,12 @@ while len(data) >= 100:
         print("Disconected from server")
         sys.exit(0)
 
-if len > 0:
-    try: 
-        framedSend(s,b":"+data,debug)
-    except BrokenPipeError:
-        print("Disconnected form server")
-        sys.exit(0)
+if len(data) > 0:
+    framedSend(s,b":"+data,debug)
+    
+try:
+    framedSend(s,b":\'end\'")
+except BrokenPipeError:
+    print("Disconnected form server")
+    sys.exit(0)
 
