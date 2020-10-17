@@ -3,7 +3,8 @@
 #Author: Jose Gallardo
 
 import socket, sys, re, os
-from framedSock import framedSend, framedReceive
+from threading import Thread, Lock
+from encapFramedSock import EncapFramedSock
 
 sys.path.append("../lib")
 import params
@@ -28,16 +29,18 @@ listenerSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 bindAddr = ("127.0.0.1", listenPort)
 listenerSocket.bind(bindAddr)
 listenerSocket.listen(5)
-while True:
-    print("listening on: ", bindAddr)
+print("listening on: ", bindAddr)
 
-    sock, addr = listenerSocket.accept()
+class Server(Thread):
+    def _init_(self, sockAddr):
+        Thread.__init__(self)
+        self.sock, self.addr = sockAddr
+        self.fsock = EncapFramedSock(sockAddr)
 
-    rc = os.fork() #child to handle connections
-    if rc == 0:
-        print("Connection recieved from ", addr)
-
-        start = framedReceive(sock, debug)
+    def run(self):
+        print("New thread handling connection from ", self.addr)
+        while True:
+            start = self.fsock.receive(debug)
         try:
             start = start.decode()
         except AttributeError:
@@ -62,7 +65,7 @@ while True:
         while True:
             #error handling
             try:
-                payload = framedReceive(sock, debug)
+                payload = self.fsock.receive(debug)
 
             except:
                 pass
@@ -78,4 +81,11 @@ while True:
 
         #ensures child exits loop        
         break
+
+while True:
+    sockAddr = lsock.accept()
+    server = Server(sockAddr)
+    server.start()
+
+
 

@@ -4,8 +4,7 @@
 
 
 import socket, sys, re, os
-from framedSock import framedSend, framedReceive
-
+from encapFramedSock import EncapFramedSock
 sys.path.append("../lib") #for params
 import params
 
@@ -37,6 +36,7 @@ except:
     sys.exit(1)
     
 s = None
+fsock = None
 for res in socket.getaddrinfo(serverHost, serverPort, socket.AF_UNSPEC, socket.SOCK_STREAM):
     af, socketType, proto, cannonname, sa = res
     try:
@@ -49,6 +49,7 @@ for res in socket.getaddrinfo(serverHost, serverPort, socket.AF_UNSPEC, socket.S
     try:
         print("Attempting to connect to %s" % repr(sa))
         s.connect(sa)
+        fsock = EncapFramedSock((s, sa))
     except socket.error as msg:
         print("Error: %s" % msg)
         s.close()
@@ -73,7 +74,7 @@ except FileNotFoundError:
     sys.exit(0)
 try:
     #sends file info to server
-    framedSend(s,b':'+inputFile.strip().encode('utf-8') + b"\'start\'")
+    fsock.send(s,b':'+inputFile.strip().encode('utf-8') + b"\'start\'")
 except BrokenPipeError:
     print("Disconnected from server")
     sys.exit(0)
@@ -82,16 +83,16 @@ while len(data) >= 100:
     line = data[:100]
     data = data[100:]
     try:
-        framedSend(s,b":"+line,debug)
+        fsock.send(s,b":"+line,debug)
     except BrokenPipeError:
         print("Disconected from server")
         sys.exit(0)
 
 if len(data) > 0:
-    framedSend(s,b":"+data,debug)
+    fsock.send(s,b":"+data,debug)
     
 try:
-    framedSend(s,b":\'end\'")
+    fsock.send(s,b":\'end\'")
 except BrokenPipeError:
     print("Disconnected form server")
     sys.exit(0)
