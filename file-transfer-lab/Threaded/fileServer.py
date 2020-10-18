@@ -6,7 +6,7 @@ import socket, sys, re, os
 from threading import Thread, Lock
 from encapFramedSock import EncapFramedSock
 
-sys.path.append("../lib")
+sys.path.append("../../lib")
 import params
 os.chdir("Server")
 

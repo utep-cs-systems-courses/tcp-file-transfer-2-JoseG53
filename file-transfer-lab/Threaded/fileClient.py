@@ -5,7 +5,7 @@
 
 import socket, sys, re, os
 from encapFramedSock import EncapFramedSock
-sys.path.append("../lib") #for params
+sys.path.append("../../lib") #for params
 import params
 
 port = input("Would you like to use the stammer proxy? (y/n)\n")

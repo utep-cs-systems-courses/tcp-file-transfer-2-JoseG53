@@ -5,7 +5,7 @@
 import socket, sys, re, os
 from framedSock import framedSend, framedReceive
 
-sys.path.append("../lib")
+sys.path.append("../../lib")
 import params
 os.chdir("Server")
 
