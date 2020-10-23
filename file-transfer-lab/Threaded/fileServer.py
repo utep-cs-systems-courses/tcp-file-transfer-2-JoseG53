@@ -32,7 +32,7 @@ listenerSocket.listen(5)
 print("listening on: ", bindAddr)
 
 class Server(Thread):
-    def _init_(self, sockAddr):
+    def __init__(self, sockAddr):
         Thread.__init__(self)
         self.sock, self.addr = sockAddr
         self.fsock = EncapFramedSock(sockAddr)
@@ -41,49 +41,46 @@ class Server(Thread):
         print("New thread handling connection from ", self.addr)
         while True:
             start = self.fsock.receive(debug)
-        try:
-            start = start.decode()
-        except AttributeError:
-            print("error exiting: ", start)
-            sys.exit(0)
-
-        count = 0
-        for char in start:
-            if char.isalpha():
-                break
-            else:
-                count = count + 1
-        start = start[count:]
-
-        #where the file name ends
-        start = start.split("\'start\'")
-
-        #opening file
-        file = open(start[0].strip(), "wb+")
-
-        #recieving input while file has not ended
-        while True:
-            #error handling
             try:
-                payload = self.fsock.receive(debug)
-
-            except:
-                pass
-
-            if debug: print("received: ", payload)
-            if not payload:
-                break
-            if b"\'end\'" in payload:
-                file.close()
+                start = start.decode()
+            except AttributeError:
+                print("error exiting: ", start)
                 sys.exit(0)
-            else:
-                file.write(payload[1:])
 
-        #ensures child exits loop        
-        break
+            count = 0
+            for char in start:
+                if char.isalpha():
+                    break
+                else:
+                    count = count + 1
+            start = start[count:]
+
+            #where the file name ends
+            start = start.split("\'start\'")
+
+            #opening file
+            file = open(start[0].strip(), "wb+")
+
+            #recieving input while file has not ended
+            while True:
+                #error handling
+                try:
+                    payload = self.fsock.receive(debug)
+
+                except:
+                    pass
+
+                if debug: print("received: ", payload)
+                if not payload:
+                    break
+                if b"\'end\'" in payload:
+                    file.close()
+                    sys.exit(0)
+                else:
+                    file.write(payload[1:])
 
 while True:
-    sockAddr = lsock.accept()
+    sockAddr = listenerSocket.accept()
     server = Server(sockAddr)
     server.start()
 

@@ -36,6 +36,7 @@ except:
     sys.exit(1)
     
 s = None
+sa = None
 fsock = None
 for res in socket.getaddrinfo(serverHost, serverPort, socket.AF_UNSPEC, socket.SOCK_STREAM):
     af, socketType, proto, cannonname, sa = res
@@ -69,12 +70,15 @@ try:
     with open(inputFile.strip(), "rb") as binaryFile:
         #read whole file as one
         data = binaryFile.read()
+        if data == b'':
+            print(inputFile + " is empty....Now Exiting")
+            sys.exit(0)
 except FileNotFoundError:
     print("File not found....Now Exiting")
     sys.exit(0)
 try:
     #sends file info to server
-    fsock.send(s,b':'+inputFile.strip().encode('utf-8') + b"\'start\'")
+    fsock.send(b':'+inputFile.strip().encode('utf-8') + b"\'start\'")
 except BrokenPipeError:
     print("Disconnected from server")
     sys.exit(0)
@@ -83,16 +87,16 @@ while len(data) >= 100:
     line = data[:100]
     data = data[100:]
     try:
-        fsock.send(s,b":"+line,debug)
+        fsock.send(b":"+line,debug)
     except BrokenPipeError:
         print("Disconected from server")
         sys.exit(0)
 
 if len(data) > 0:
-    fsock.send(s,b":"+data,debug)
+    fsock.send(b":"+data,debug)
     
 try:
-    fsock.send(s,b":\'end\'")
+    fsock.send(b":\'end\'")
 except BrokenPipeError:
     print("Disconnected form server")
     sys.exit(0)

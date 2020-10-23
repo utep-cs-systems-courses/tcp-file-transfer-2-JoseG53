@@ -68,6 +68,9 @@ try:
     with open(inputFile.strip(), "rb") as binaryFile:
         #read whole file as one
         data = binaryFile.read()
+        if data == b'':
+            print(inputFile + " is empty....Now Exiting")
+            sys.exit(0)
 except FileNotFoundError:
     print("File not found....Now Exiting")
     sys.exit(0)
