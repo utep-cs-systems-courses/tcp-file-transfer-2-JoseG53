@@ -2,7 +2,7 @@
 
 #Author: Jose Gallardo
 
-import socket, sys, re, os
+import socket, sys, re, os, threading
 from threading import Thread, Lock
 from encapFramedSock import EncapFramedSock
 
@@ -30,6 +30,7 @@ bindAddr = ("127.0.0.1", listenPort)
 listenerSocket.bind(bindAddr)
 listenerSocket.listen(5)
 print("listening on: ", bindAddr)
+lock = threading.Lock()
 
 class Server(Thread):
     def __init__(self, sockAddr):
@@ -40,6 +41,7 @@ class Server(Thread):
     def run(self):
         print("New thread handling connection from ", self.addr)
         while True:
+            lock.acquire()
             start = self.fsock.receive(debug)
             try:
                 start = start.decode()
@@ -75,9 +77,11 @@ class Server(Thread):
                     break
                 if b"\'end\'" in payload:
                     file.close()
+                    lock.release()
                     sys.exit(0)
                 else:
                     file.write(payload[1:])
+
 
 while True:
     sockAddr = listenerSocket.accept()
